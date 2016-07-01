@@ -23,8 +23,6 @@ body {
     font-size: 1.5em;
     color: #000000;
     /*background: #000000;*/
-    color: #fff;
-    /*background-image: url("images/bg1.jpg");*/
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -198,11 +196,11 @@ h1 {
     padding: 15px;
 }
 
-#map-container {
+#map {
     height: 600px;
     width: 100%;
 }
-#address {
+#address, .content.container {
     margin-top: 100px;
     color: #000;
     font-weight: 700;
@@ -210,4 +208,21 @@ h1 {
 
 #mapInfo {
     color: #1b6d85;
+    font-family: 'Open Sans Condensed', sans-serif;
+    font-weight: 400;
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: 0 1px 6px rgba(178, 178, 178, 0.6);
+    border: 1px solid rgba(72, 181, 233, 0.6);
+    border-radius: 2px 2px 0 0;
+}
+.jumbotron {
+    text-align: center;
+}
+#fb {
+    color: #1139de;
+}
+#facebook_btn {
+    width: 130px;
+    box-shadow: rgba(0, 0, 0, 0.3) 20px 20px 20px;
 }

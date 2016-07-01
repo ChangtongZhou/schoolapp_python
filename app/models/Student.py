@@ -5,6 +5,33 @@ class Student(Model):
         def __init__(self):
             super(Student, self).__init__()
 
+        def fb_create_user(self, info):
+            flag = True;
+            sql = "select * from students where email = :email"
+            data = {
+                "email": info["email"]
+            }
+            result = self.db.query_db(sql, data)
+
+            if len(result) > 0:
+                flag = False
+                return {"status": False}
+
+            if not flag:
+                return {"status": False, "flag": flag}
+            else:
+                query = "INSERT into students (first_name, last_name, email, phone_number,password, school_location, created_at, updated_at) VALUES(:first_name, :last_name, :email, :phone_number,:password, :school_location, now(), now())"
+                data = {
+                    'first_name': info['first_name'],
+                    'last_name': info['last_name'],
+                    'email': info['email'],
+                    'phone_number': info['phone_number'],
+                    'school_location': info['school_location'],
+                    'password': 'FB User'
+                }
+                user_id = self.db.query_db(query, data)
+                return {"status": True, "user_id": user_id}
+
         def create_user(self, info):
             flag = True;
             # pattern for email
@@ -105,8 +132,12 @@ class Student(Model):
                     'school_location': info['school_location'],
                     'pwd': pw_hash
                 }
-                user_id = self.db.query_db(query, data)
-                return {"status": True, "user_id": user_id}
+                # user_id = self.db.query_db(query, data)
+                self.db.query_db(query, data)
+                get_user_query = "SELECT * FROM students ORDER BY id DESC LIMIT 1"
+                users = self.db.query_db(get_user_query)
+                return {"status": True, "user": users[0]}
+                # return {"status": True, "user_id": user_id}
 
         def login_user(self, info):
             flag = True
@@ -134,3 +165,43 @@ class Student(Model):
                 "id": user_id
             }
             return self.db.get_one(sql, data)
+
+        def get_usre_info_by_email(self, email):
+            sql = "select * from students where email = :email"
+            data = {
+                "email": email
+            }
+            return self.db.get_one(sql, data)
+
+        def get_courses(self, student_id):
+            sql = "select c.id,course_number, c.description from courses c where not exists (select cs.course_id from courses_has_students cs where cs.course_id = c.id and cs.student_id = :student_id)"
+            data = {
+                "student_id": student_id
+            }
+            return self.db.query_db(sql, data)
+
+        def add_courses(self, course_id, student_id):
+            sql = "insert into courses_has_students (student_id,course_id) values (:student_id,:course_id)"
+            data = {
+                "student_id": student_id,
+                "course_id": course_id
+            }
+            return self.db.query_db(sql, data)
+
+
+            # query = "select b.name as course_name, a.lat, a.lng from buildings a " \
+            #         "join courses b on a.id=b.building_id " \
+            #         "join courses_has_students c on b.id=c.course_id " \
+            #         "where c.student_id = :id"
+            # data = {
+            #     "id": id
+            # }
+
+
+
+            # select courses.name as course_name, buildings.Lat, buildings.Lng from buildings
+            # join courses on buildings.id=courses.building_id
+            # join courses_has_students on courses.id=courses_has_students.course_id
+
+
+

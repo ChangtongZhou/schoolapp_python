@@ -1,10 +1,13 @@
 from system.core.controller import *
-from flask import Flask,flash
+from flask import Flask,flash,json
 
 class Sessions(Controller):
     def __init__(self, action):
         super(Sessions, self).__init__(action)
         self.load_model("Student")
+        self.load_model('Location')
+        self.load_model('Course')
+
 
     def index(self):
         if "user_id" in session:
@@ -20,15 +23,30 @@ class Sessions(Controller):
     def show_login_page(self):
         return self.load_view('index.html')
 
+    # def register(self):
+    #     user_status = self.models['Student'].create_user(request.form)
+    #
+    #     if user_status["status"] == False:
+    #         return redirect("/register")
+    #
+    #     session["user_id"] = user_status["user_id"]
+    #     locations = self.models['Location'].spec_location(session["user_id"])
+    #
+    #     print locations, "location are here"
+    #     return self.load_view('success.html', locations=json.dumps(locations))
+
     def register(self):
         user_status = self.models['Student'].create_user(request.form)
+        print user_status, "heloooooooooo"
 
         if user_status["status"] == False:
             return redirect("/register")
 
-        session["user_id"] = user_status["user_id"]
-
-        return self.load_view("success.html")
+        # session['name'] = user_status['user_id']['first_name']
+        session['user_id'] = user_status['user']['id']
+        locations = self.models['Location'].spec_location(session["user_id"])
+        print locations, "location are here"
+        return self.load_view('success.html', locations=json.dumps(locations))
 
     def login(self):
         info = {
@@ -38,15 +56,77 @@ class Sessions(Controller):
 
         result = self.models["Student"].login_user(info)
 
-        if result["status"] == False:
+        print result
+        if result is not None and result["status"] == False:
             return redirect("/")
+        else:
+            session["name"] = result['user']["first_name"]
+            session['user_id'] = result['user']['id']
+            locations = self.models['Location'].spec_location(session["user_id"])
+            print locations, "location are here"
+            return self.load_view('success.html', locations=json.dumps(locations))
 
-        session["user_id"] = result["user"]["id"]
+    def facebook_login_successed(self, first_name, last_name, email):
+        result = self.models["Student"].get_usre_info_by_email(email)
+        print result
+        if result is not None and len(result) > 0:
+            session["name"] = result["first_name"]
+            session['user_id'] = result['id']
+            locations = self.models['Location'].spec_location(session["user_id"])
+            print locations, "location are here"
+            return self.load_view('success.html', locations=json.dumps(locations), result=result)
+        user_info = {
+            'fname': first_name,
+            'lname': last_name,
+            'email': email
+        }
+        return self.load_view("fb_register.html", user_info=user_info)
 
-        return self.load_view("success.html")
+    def facebook_register(self):
+        user_status = self.models['Student'].fb_create_user(request.form)
+        print user_status
+
+        if user_status["status"] == False:
+            user_info = {
+                'fname': request.form['first_name'],
+                'lname': request.form['last_name'],
+                'email': request.form['email']
+            }
+            return self.load_view("fb_register.html", user_info=user_info)
+
+        # session['name'] = user_status['first_name']
+        session['user_id'] = user_status['user_id']
+        print session['user_id']
+        locations = self.models['Location'].spec_location(session["user_id"])
+        print locations, "location are here"
+        return self.load_view('success.html', locations=json.dumps(locations))
 
     def logout(self):
         if "user_id" in session:
             session.pop("user_id")
-
+        session.clear()
         return redirect("/")
+
+    def courses(self):
+        student_id = session['user_id']
+        courses = self.models['Student'].get_courses(student_id)
+        return self.load_view('addcourses.html', courses=courses)
+
+    def add_courses(self):
+        courses = request.form.getlist("courses")
+        student_id = session['user_id']
+        for course in courses:
+            print "course selected : " + course
+            self.models['Student'].add_courses(course, student_id)
+        flash(" Course added successfully", "add_courses")
+        locations = self.models['Location'].spec_location(session["user_id"])
+        print locations, "location are here"
+        return self.load_view('success.html', locations=json.dumps(locations))
+
+    def get_st_courses(self,course_name):
+        return self.load_view('courses.html',course_name=course_name)
+
+    def studentwall(self):
+        return self.load_view('studentwall.html')
+
+
