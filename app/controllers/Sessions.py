@@ -42,7 +42,7 @@ class Sessions(Controller):
         if user_status["status"] == False:
             return redirect("/register")
 
-        # session['name'] = user_status['user_id']['first_name']
+        session['name'] = user_status['user']['first_name']
         session['user_id'] = user_status['user']['id']
         locations = self.models['Location'].spec_location(session["user_id"])
         print locations, "location are here"
@@ -126,7 +126,32 @@ class Sessions(Controller):
     def get_st_courses(self,course_name):
         return self.load_view('courses.html',course_name=course_name)
 
+    # def studentwall(self):
+    #     return self.load_view('studentwall.html')
+
     def studentwall(self):
-        return self.load_view('studentwall.html')
+        messages = self.models['Student'].getmessages()
+        students = self.models['Student'].get_students()
+        print students, "pppppppppppppppppppppppppppppppp"
+        for message in messages:
+            comments = self.models['Student'].getComments(session['user_id'], message['id'])
+            message['comments'] = comments
+        return self.load_view('studentwall.html', messages=messages, students=students)
+
+    def add_post(self):
+        messages = self.models['Student'].message(request.form['user_id'], request.form['message'])
+        flash("Message posted successfully", "message_success")
+        return redirect("/studentwall")
+
+    def delete_post(self, post_id):
+        messages = self.models['Student'].delete_message(post_id)
+        flash("Message deleted successfully", "message_success")
+        return redirect("/studentwall")
+
+    def add_comment(self, post_id):
+        messages = self.models['Student'].add_comment(session['user_id'], post_id, request.form['comment'])
+        flash("Comment posted successfully", "message_success")
+        return redirect("/studentwall")
+
 
 

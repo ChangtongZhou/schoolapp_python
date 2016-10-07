@@ -24,3 +24,7 @@ routes['/courses_page/<course_name>'] = 'Sessions#get_st_courses'
 
 routes['/studentwall'] = 'Sessions#studentwall'
 
+routes['POST']['/message'] ="Sessions#add_post"
+routes['POST']['/delete/<post_id>'] ="Sessions#delete_post"
+routes['POST']['/comment/<post_id>'] ="Sessions#add_comment"
+

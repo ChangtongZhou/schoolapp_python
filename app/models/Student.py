@@ -189,19 +189,57 @@ class Student(Model):
             return self.db.query_db(sql, data)
 
 
-            # query = "select b.name as course_name, a.lat, a.lng from buildings a " \
-            #         "join courses b on a.id=b.building_id " \
-            #         "join courses_has_students c on b.id=c.course_id " \
-            #         "where c.student_id = :id"
-            # data = {
-            #     "id": id
-            # }
+        # ------Here is the edit part-----------------------------------------------
 
+        def message(self, student_id, message):
+            sql = "insert into posts (student_id,content,created_at,updated_at) values (:student_id,:message,NOW(),NOW())"
+            data = {
+                "student_id": student_id,
+                "message": message
+            }
+            return self.db.query_db(sql, data)
 
+        def delete_message(self, post_id):
+            sql = "delete from messages  where post_id = :post_id"
+            data = {
+                "post_id": post_id
+            }
+            self.db.query_db(sql, data)
+            sql = "delete from posts  where id = :post_id"
+            return self.db.query_db(sql, data)
 
-            # select courses.name as course_name, buildings.Lat, buildings.Lng from buildings
-            # join courses on buildings.id=courses.building_id
-            # join courses_has_students on courses.id=courses_has_students.course_id
+        def get_students(self):
+            sql = "select * from students"
+            return self.db.query_db(sql)
+
+        def getmessages(self):
+            # sql = "select distinct p.* from posts p left join messages m  on p.id = m.post_id  order by m.created_at desc,p.created_at desc"
+            sql = "select students.first_name, p.* from posts p " \
+                    "left join students on students.id = p.student_id " \
+                    "left join messages m  on p.id = m.post_id " \
+                    "order by p.created_at desc"
+            return self.db.query_db(sql)
+
+        def getComments(self, student_id, post_id):
+            # sql = "select * from messages where student_id = :student_id and post_id = :post_id order by created_at desc"
+            sql = "select students.first_name, messages.* from messages " \
+                  "join students on students.id = messages.student_id " \
+                  "where student_id = :student_id and post_id = :post_id order by created_at desc"
+
+            data = {
+                "student_id": student_id,
+                "post_id": post_id
+            }
+            return self.db.query_db(sql, data)
+
+        def add_comment(self, student_id, post_id, comment):
+            sql = "insert into messages (student_id,post_id,content,created_at,updated_at) values (:student_id,:post_id,:comment,NOW(),NOW())"
+            data = {
+                "student_id": student_id,
+                "comment": comment,
+                "post_id": post_id
+            }
+            return self.db.query_db(sql, data)
 
 
 
